@@ -110,5 +110,5 @@ public class EscapePlan {
 		EscapePlan ep = new EscapePlan("input2.txt");
 		ep.printResult();
 	}
-
+//wahaha
 }
