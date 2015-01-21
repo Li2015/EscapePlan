@@ -111,5 +111,4 @@ public class EscapePlan {
 		ep.printResult();
 	}
 //wahaha
-	//hahaha
 }
