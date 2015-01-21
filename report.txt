@@ -1,0 +1,69 @@
+The idea that I used to solve the escape problem consist of two parts.
+
+The first part is how to convert this problem to a max flow problem.
+The second part is how to implement the algorithm that work for this problem.
+
+It is not hard to find from the problem specification that if this problem is
+a max flow problem, then each edge would have a capacity of 1.
+For a typical max flow problem, there would be one source and one sink. In this
+problem, there is multiple sources, which are cities that needs to be evacuated, 
+and multiple sinks, which are safe cities. But as we observe more carefully, it is
+not hard to find that the problem can be converted to a typical max flow problem in
+this way:
+1. create a source node and a sink node.
+2. add edges from the source to all X nodes. Each edge has capacity of 1.
+3. add edge from the S nodes to the sink. Each edge has capacity of infinity.
+4. add all other edges in the graph, each has capacity of 1.
+
+After this, a flow network is generated. To examine whether or not there is an escape
+plan, we only need to do the following.
+1. compute the max flow.
+2. examine if it equals to the number of cities that need to be evacuated.
+If equals, then there is an escape plan.
+If not, (the max flow is smaller that X nodes) then there is no such plan.
+
+Now I would like to talk about something special about how I implement residual network
+and FordFulkerson algorithm that works for the escape plan problem.
+
+I implement my own FlowEdge class in a special way. As for all edges except edges that
+goes to the sink, the capacity is one. If we examine the residual network, we would notice
+that in practice, there would be either a valid forward edge or a backward edge. There can
+not be both. (By valid I mean the forward edge is not full and the backward edge is not empty)
+Thus there is no need to keep track of capacity and flow. Based on this, my FlowEdge is like this.
+
+public class FlowEdge {
+	int v;
+	int w;
+	boolean vToW;
+	// some other methods...
+	public boolean canConnectTo(int vertex){
+		if(vertex == w) return vToW;
+		else return !vToW;
+	}
+	public void connectTo(int vertex){
+		if(vertex == v)	vToW = true;
+		if(vertex == w)	vToW = false;
+	}
+}
+
+But for the edges from S nodes to the sink, the capacity is not 1. But this case only exist for
+the sink node, which is a very special case. Thus I implemented hasAugmentingPath so that if we
+want to go from S node to the sink, it is always permitted:
+if((w == SinkNode || e.canConnectTo(w)) && !visiteded[w]){
+	//...
+}
+
+Now, to compute the max flow, we only need to do this:
+
+while(hasAugmentingPath(s, t)){
+	for(int v = t; v!=s; v = edgeTo[v].other(v)){
+				edgeTo[v].connectTo(v);
+	}
+			value++;
+}
+And the parameter value is the result of max flow.
+
+In other words, my version of FordFulkerson algorithms, hasAugmentingPath method 
+and FlowEdge class is implemented in a concise way. So it only work for this escape problem only. 
+It can not be used for general max flow problems. But it has similar logic to solving general
+max flow problems.
